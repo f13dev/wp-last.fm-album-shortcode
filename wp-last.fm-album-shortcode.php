@@ -146,7 +146,30 @@ function f13_lfmas_settings_page()
             To obtain a Last.fm API Key:
             <ol>
                 <li>
-                    Instructions
+                    Login or register with <a href="http://last.fm">Last.fm</a>.
+                </li>
+                <li>
+                    Visit <a href="http://www.last.fm/api/account/create">http://www.last.fm/api/account/create</a> to create an API key
+                </li>
+                <li>
+                    Your email address should already be present, if not add it.
+                </li>
+                <li>
+                    Enter an application name, such as 'Album information on my blog'.
+                </li>
+                <li>
+                    Enter an application description, such as:<br />
+                    Use of F13 Last.fm Album Shortcode WordPress plugin on
+                    my blog to insert album information.
+                </li>
+                <li>
+                    The callback URL and application homepage can be left blank.
+                </li>
+                <li>
+                    Read the API terms and conditions, if you agree to them, click 'Submit' to obtain your API details.
+                </li>
+                <li>
+                    Copy and past the provided API key to the field below.
                 </li>
             </ol>
         </p>
