@@ -206,6 +206,30 @@ function f13_album_data_formatter($albumData)
             }
         }
 
+        // Store the track number
+        $currentTrack = 1;
+        // Add track listing
+        foreach ($albumData['album']['tracks']['track'] as &$eachTrack)
+        {
+            // Output the track number and name followed by the track
+            // time in minutes:seconds
+            $response .= $currentTrack . ') ' . $eachTrack['name'] . ' (' . gmdate("i:s", $eachTrack['duration']) . ')<br />';
+
+            // Increment the track number
+            $currentTrack++;
+        }
+
+        // Add each of the tags
+        foreach ($albumData['album']['tags']['tag'] as &$eachTag)
+        {
+            // Check if the tag is numeric, if not add the tag
+            // numeric tags are the year of the album.
+            if (!is_numeric($eachTag['name']))
+            {
+                $response .= $eachTag['name'] . '<br />';
+            }
+        }
+
     // Close the container div
     $response .= '</div>';
 
