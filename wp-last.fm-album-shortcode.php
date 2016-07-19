@@ -262,8 +262,12 @@ function f13_album_data_formatter($albumData)
             // the image.
             if (is_numeric($imageID) && $imageID != null)
             {
-              // Add the image using the pre-found image url
-              $response .= '<img src="' . $image_url . '" />';
+                // Open a div to house the image
+                $response .= '<div class="f13-album-art">';
+                    // Add the image using the pre-found image url
+                    $response .= '<img src="' . $image_url . '" />';
+                // Close the image div
+                $response .= '</div>';    
             }
         }
 
