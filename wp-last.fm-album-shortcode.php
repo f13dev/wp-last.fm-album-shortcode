@@ -25,6 +25,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
+// Temporary api key variable
+$key = '';
+
 // Register the shortcode
 add_shortcode( 'album', 'f13_lastfm_album_shortcode');
 // Register the CSS
@@ -39,4 +42,34 @@ function f13_lastfm_album_shortcode_stylesheet()
 {
     wp_register_style( 'f13album-style', plugins_url('wp-last.fm-album-shortcode.css', __FILE__));
     wp_enqueue_style( 'f13album-style' );
+}
+
+function f13_get_lastfm_data($anArtist, $anAlbum)
+{
+    // start curl
+    $curl = curl_init();
+
+    // Replace spaces in anArtist and anAlbum with +
+    $anArtist = str_replace(' ', '+', $anArtist);
+    $anAlbum = str_replace(' ', '+', $anAlbum);
+
+    // set the curl URL
+    $url = 'http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=' . $key . '&artist=' . $anArtist . '&album=' . $anAlbum . '&format=json';
+
+    // Set curl options
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HTTPGET, true);
+
+    // Set the user agent
+    curl_setopt($curl, CURLOPT_USERAGENT, 'F13 WP Last.fm Album Shortcode/1.0');
+    // Set curl to return the response, rather than print it
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+    // Get the results and store the XML to results
+    $results = json_decode(curl_exec($curl), true);
+
+    // Close the curl session
+    curl_close($curl);
+
+    return $results;
 }
