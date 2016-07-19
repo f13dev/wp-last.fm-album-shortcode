@@ -267,32 +267,51 @@ function f13_album_data_formatter($albumData)
                     // Add the image using the pre-found image url
                     $response .= '<img src="' . $image_url . '" />';
                 // Close the image div
-                $response .= '</div>';    
+                $response .= '</div>';
             }
         }
 
-        // Store the track number
-        $currentTrack = 1;
-        // Add track listing
-        foreach ($albumData['album']['tracks']['track'] as &$eachTrack)
+        // Make sure the track listing array is not empty
+        if (!empty($albumData['album']['tracks']['track']))
         {
-            // Output the track number and name followed by the track
-            // time in minutes:seconds
-            $response .= $currentTrack . ') <a href="' . $eachTrack['url'] . '">' . $eachTrack['name'] . '</a> (' . gmdate("i:s", $eachTrack['duration']) . ')<br />';
+            // If the track listing is not empty, open a track listing
+            // div and enter the track listing into it.
+            $response .= '<div class="f13-album-tracks">';
 
-            // Increment the track number
-            $currentTrack++;
+                // Store the track number
+                $currentTrack = 1;
+                // Add track listing
+                foreach ($albumData['album']['tracks']['track'] as &$eachTrack)
+                {
+                    // Output the track number and name followed by the track
+                    // time in minutes:seconds
+                    $response .= '<span>' . $currentTrack . ') <a href="' . $eachTrack['url'] . '">' . $eachTrack['name'] . '</a> (' . gmdate("i:s", $eachTrack['duration']) . ')</span>';
+
+                    // Increment the track number
+                    $currentTrack++;
+                }
+            // Close the tracks div
+            $response .= '</div>';
         }
 
-        // Add each of the tags
-        foreach ($albumData['album']['tags']['tag'] as &$eachTag)
+        // Make sure the tags array is not empty
+        if (!empty($albumData['album']['tags']['tag']))
         {
-            // Check if the tag is numeric, if not add the tag
-            // numeric tags are the year of the album.
-            if (!is_numeric($eachTag['name']))
-            {
-                $response .= '<a href="' . $eachTag['url'] . '">' . $eachTag['name'] . '</a><br />';
-            }
+            // Open a tags div and add each entry to it.
+            $response .= '<div class="f13-album-tags">';
+
+                // Add each of the tags
+                foreach ($albumData['album']['tags']['tag'] as &$eachTag)
+                {
+                    // Check if the tag is numeric, if not add the tag
+                    // numeric tags are the year of the album.
+                    if (!is_numeric($eachTag['name']))
+                    {
+                        $response .= '<span><a href="' . $eachTag['url'] . '">' . $eachTag['name'] . '</a></span>';
+                    }
+                }
+            // Close the tags div
+            $response .= '</div>';
         }
 
         // Add the published date if it's present
@@ -303,13 +322,13 @@ function f13_album_data_formatter($albumData)
             $publishDate = explode(',', $albumData['album']['wiki']['published']);
             $publishDate = $publishDate[0];
             // Add the date to the response.
-            $response .= 'Published: ' . $publishDate . '<br />';
+            $response .= '<div class="f13-album-published">Published: ' . $publishDate . '</div>';
         }
 
         // Add the summary if it exists
         if (array_key_exists('summary', $albumData['album']['wiki']))
         {
-            $response .= $albumData['album']['wiki']['summary'];
+            $response .= '<div class="f13-album-summary">' . $albumData['album']['wiki']['summary'] . '</div>';
         }
 
     // Close the container div
