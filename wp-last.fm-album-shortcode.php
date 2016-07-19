@@ -25,9 +25,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-// Temporary api key variable
-$key = '';
-
 // Register the shortcode
 add_shortcode( 'album', 'f13_lastfm_album_shortcode');
 // Register the CSS
@@ -47,7 +44,7 @@ function f13_lastfm_album_shortcode( $atts, $content = null )
         // Warn the user that both the artist and album attribute
         // must be set.
         $response = 'Both the artist and album attributes must be set.<br />
-        e.g. [album artist="Metallica" album="The Black Album"]'
+        e.g. [album artist="Metallica" album="The Black Album"]';
     }
     else
     {
@@ -70,7 +67,7 @@ function f13_lastfm_album_shortcode( $atts, $content = null )
             // If there isn't a valid cache that matches the attributes then
             // the API will need to be called to create the response and store
             // it into the cache.
-            $albumData = f13_get_lastfm_data($anArtist, $anAlbum)
+            $albumData = f13_get_lastfm_data($artist, $album);
 
             // Check if the response includes an error. In the case of
             // an error, the artist/album combination are not found.
@@ -101,6 +98,10 @@ function f13_lastfm_album_shortcode_stylesheet()
 
 function f13_get_lastfm_data($anArtist, $anAlbum)
 {
+    // Temporary api key variable until the admin backend and settings
+    // group has been created.
+    $key = '';
+
     // start curl
     $curl = curl_init();
 
@@ -132,4 +133,100 @@ function f13_get_lastfm_data($anArtist, $anAlbum)
 function f13_album_data_formatter($albumData)
 {
     // Format the album data into a nice looking widget
+
+    // Create a response variable
+    $response = '';
+
+    // Open a container div
+    $response .= '<div class="f13-album-container">';
+
+        // Open a header div to hold the artist and album information
+        $response .= '<div class="f13-album-head">';
+
+            $response .= $albumData['album']['artist'] . ' - ' . $albumData['album']['name'];
+
+        // Close the head div
+        $response .= '</div>';
+
+        // Create an albumArt variable
+        $albumArt = null;
+        // Get the mega image filename
+        foreach ($albumData['album']['image'] as &$eachImage)
+        {
+            // If image size is mega
+            if ($eachImage['size'] == 'mega')
+            {
+                // Store the URL to the mega image
+                $albumArt = $eachImage['#text'];
+            }
+        }
+
+        // Add the image if it is set
+        if ($albumArt != null)
+        {
+            // Get the filename from the URL
+            $fileName = explode('/', $albumArt);
+            $fileName = end($fileName);
+
+            // Get the image ID of the file if it exists
+            $imageID = f13_get_album_attachment_id($fileName);
+
+            // If the image doesn't exist locally
+            if ($imageID == null)
+            {
+                // If the image file does not already exist try and
+                // add it to the media library.
+
+                // Require files used to sideload
+                require_once(ABSPATH . 'wp-admin/includes/media.php');
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+                // Attempt to sideload image
+                media_sideload_image($albumArt, get_the_ID(), $albumData['album']['artist'] . ' - ' . $albumData['album']['name']);
+                // Get the newly sideloaded image
+                $imageID = f13_get_album_attachment_id($fileName);
+                // Get the image url
+                $image_url = wp_get_attachment_url($imageID);
+            }
+            else
+            {
+              // If the image already exists, use the
+              // image id already obtained.
+              $image_url = wp_get_attachment_url($imageID);
+
+            }
+
+            // Check if the image id is a number, if so add
+            // the image.
+            if (is_numeric($imageID) && $imageID != null)
+            {
+              // Add the image using the pre-found image url
+              $response .= '<img src="' . $image_url . '" />';
+            }
+        }
+
+    // Close the container div
+    $response .= '</div>';
+
+    // Return the response.
+    return $response;
+}
+
+// retrieves the attachment ID from the filename
+function f13_get_album_attachment_id($file_name) {
+    global $wpdb;
+    // Search the database for an attachment ending with the filename
+    $attachment = $wpdb->get_col($wpdb->prepare("SELECT post_id FROM {$wpdb->base_prefix}postmeta WHERE meta_key='_wp_attached_file' AND meta_value LIKE %s;", '%' . $file_name ));
+    // Returns the post ID or null
+    if ($attachment[0] == null || $attachment[0] == '')
+    {
+        // If the post ID is not valid return null
+        return null;
+    }
+    else
+    {
+        // Otherwise return the valid post ID
+        return $attachment[0];
+    }
 }
