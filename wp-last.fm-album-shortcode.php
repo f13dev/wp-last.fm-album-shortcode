@@ -35,7 +35,62 @@ add_action( 'wp_enqueue_scripts', 'f13_lastfm_album_shortcode_stylesheet');
 
 function f13_lastfm_album_shortcode( $atts, $content = null )
 {
-  // Handle shortcode
+    // Get the attributes
+    extract( shortcode_atts ( array (
+        'artist' => '', // Get the artist attribute
+        'album' => '', // Get the album attribute
+    ), $atts ));
+
+    // Check if both an artist and album have been set
+    if ($artist == '' || $album == '')
+    {
+        // Warn the user that both the artist and album attribute
+        // must be set.
+        $response = 'Both the artist and album attributes must be set.<br />
+        e.g. [album artist="Metallica" album="The Black Album"]'
+    }
+    else
+    {
+        // If both the artist and album attributes are set, an API call is
+        // now required, from here the shortcode will be cached to reduce
+        // API calls.
+
+        // Get the associated transietn cache entry if it exists.
+        $cache = get_transient('f13lfmas' . md5(serialize($atts)));
+
+        if ($cache)
+        {
+            // If the cache exists, set the response to the cache, this way
+            // the already cached data will be returned and the API will not
+            // be called.
+            $response = $cache;
+        }
+        else
+        {
+            // If there isn't a valid cache that matches the attributes then
+            // the API will need to be called to create the response and store
+            // it into the cache.
+            $albumData = f13_get_lastfm_data($anArtist, $anAlbum)
+
+            // Check if the response includes an error. In the case of
+            // an error, the artist/album combination are not found.
+            if (in_array('error', $albumData))
+            {
+                // Warn the user that the artist album combination did not return
+                // a valid result.
+                $response = 'We could not find the album: ' . $album . ' for the artist: ' . $artist;
+            }
+            else
+            {
+                // Everything appears to be ok, so we can now build the widget.
+                // Return the response of the album data formatter, sending over the
+                // album data obtained from last.fm
+                $response = f13_album_data_formatter($albumData);
+            }
+        }
+    }
+    // Return the response
+    return $response;
 }
 
 function f13_lastfm_album_shortcode_stylesheet()
@@ -72,4 +127,9 @@ function f13_get_lastfm_data($anArtist, $anAlbum)
     curl_close($curl);
 
     return $results;
+}
+
+function f13_album_data_formatter($albumData)
+{
+    // Format the album data into a nice looking widget
 }
