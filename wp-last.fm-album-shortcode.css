@@ -1,49 +1,82 @@
 .f13-album-container
 {
-
+  background: #eee;
+  border-radius: 10px;
+  padding: 10px;
 }
 
 .f13-album-head
 {
-
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
 }
 
 .f13-album-art
 {
-
+  max-width: 300px;
+  height: auto;
+  float: left;
 }
 
 .f13-album-art > img
 {
-
+  width: 100%;
+  height: auto;
 }
 
 .f13-album-tracks
 {
-
+  height: auto;
+  float: left;
 }
 
 .f13-album-tracks > span
 {
-
+  display: block;
+  margin-left: 10px;
 }
 
 .f13-album-tags
 {
-
+  clear: both;
 }
 
-.f13-album-tags > span
+.f13-album-tags > .f13-album-tags-label
 {
+  font-weight: bold;
+  display: block;
+  margin-bottom: -1em;
+  padding-top: 1em;
+}
 
+.f13-album-tags > .f13-album-tags-tag
+{
+  background: #fff;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-right: 1em;
+  display: inline-block;
+  margin-top: 1em;
 }
 
 .f13-album-published
 {
+  margin-top: 1em;
+}
 
+.f13-album-published > span
+{
+  font-weight: bold;;
 }
 
 .f13-album-summary
 {
-  
+  margin-top: 1em;
+}
+
+.f13-album-summary > span
+{
+  font-weight: bold;
+  display: block;
 }

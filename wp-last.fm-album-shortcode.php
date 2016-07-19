@@ -40,51 +40,78 @@ function f13_lastfm_album_shortcode( $atts, $content = null )
         'album' => '', // Get the album attribute
     ), $atts ));
 
-    // Check if both an artist and album have been set
-    if ($artist == '' || $album == '')
+    // Check if an API key is present, if not return a message
+    // to the user stating that an api key is required
+    if (esc_attr( get_option('lfmastoken')) == '')
     {
-        // Warn the user that both the artist and album attribute
-        // must be set.
-        $response = 'Both the artist and album attributes must be set.<br />
-        e.g. [album artist="Metallica" album="The Black Album"]';
+        $response = 'A Last.fm API token is required for this shortcode to work.<br />
+            please visit \'WPAdmin => Settings => F13 Last.fm Album Shortcode\' for more information';
     }
     else
     {
-        // If both the artist and album attributes are set, an API call is
-        // now required, from here the shortcode will be cached to reduce
-        // API calls.
+        // If a token has been entered, continue to produce the
+        // output of the shortcode
 
-        // Get the associated transietn cache entry if it exists.
-        $cache = get_transient('f13lfmas' . md5(serialize($atts)));
-
-        if ($cache)
+        // Check if both an artist and album have been set
+        if ($artist == '' || $album == '')
         {
-            // If the cache exists, set the response to the cache, this way
-            // the already cached data will be returned and the API will not
-            // be called.
-            $response = $cache;
+            // Warn the user that both the artist and album attribute
+            // must be set.
+            $response = 'Both the artist and album attributes must be set.<br />
+            e.g. [album artist="Metallica" album="The Black Album"]';
         }
         else
         {
-            // If there isn't a valid cache that matches the attributes then
-            // the API will need to be called to create the response and store
-            // it into the cache.
-            $albumData = f13_get_lastfm_data($artist, $album);
+            // If both the artist and album attributes are set, an API call is
+            // now required, from here the shortcode will be cached to reduce
+            // API calls.
 
-            // Check if the response includes an error. In the case of
-            // an error, the artist/album combination are not found.
-            if (in_array('error', $albumData))
+            // Get the associated transietn cache entry if it exists.
+            $cache = get_transient('f13lfmas' . md5(serialize($atts)));
+
+            if ($cache)
             {
-                // Warn the user that the artist album combination did not return
-                // a valid result.
-                $response = 'We could not find the album: ' . $album . ' for the artist: ' . $artist;
+                // If the cache exists, set the response to the cache, this way
+                // the already cached data will be returned and the API will not
+                // be called.
+                $response = $cache;
             }
             else
             {
-                // Everything appears to be ok, so we can now build the widget.
-                // Return the response of the album data formatter, sending over the
-                // album data obtained from last.fm
-                $response = f13_album_data_formatter($albumData);
+                // If there isn't a valid cache that matches the attributes then
+                // the API will need to be called to create the response and store
+                // it into the cache.
+                $albumData = f13_get_lastfm_data($artist, $album);
+
+                // Check if the response includes an error. In the case of
+                // an error, the artist/album combination are not found.
+                if (array_key_exists('error', $albumData))
+                {
+                    // Warn the user that the artist album combination did not return
+                    // a valid result.
+                    $response = 'We could not find the album: ' . $album . ' for the artist: ' . $artist;
+                }
+                else
+                {
+                    // Everything appears to be ok, so we can now build the widget.
+                    // Return the response of the album data formatter, sending over the
+                    // album data obtained from last.fm
+                    $response = f13_album_data_formatter($albumData);
+                }
+
+                // Get the cache timeout and store it in seconds (from an input in minutes)
+                $cache_time = esc_attr( get_option('lfmascache_timeout')) * 60;
+
+                // If the cache time is zero, convert it to 1 second for a near
+                // instant timeout as a cache time of zero will provide a never
+                // ending cache that will never update.
+                if ($cache_time == 0 || !is_numeric($cache_time))
+                {
+                    $cache_time = 1;
+                }
+
+                // Store the response in the cache
+                set_transient('f13lfmas' . md5(serialize($atts)), $string, $cache_time);
             }
         }
     }
@@ -300,6 +327,9 @@ function f13_album_data_formatter($albumData)
             // Open a tags div and add each entry to it.
             $response .= '<div class="f13-album-tags">';
 
+                // Add a label for tags
+                $response .= '<span class="f13-album-tags-label">Tags:</span>';
+
                 // Add each of the tags
                 foreach ($albumData['album']['tags']['tag'] as &$eachTag)
                 {
@@ -307,7 +337,7 @@ function f13_album_data_formatter($albumData)
                     // numeric tags are the year of the album.
                     if (!is_numeric($eachTag['name']))
                     {
-                        $response .= '<span><a href="' . $eachTag['url'] . '">' . $eachTag['name'] . '</a></span>';
+                        $response .= '<span class="f13-album-tags-tag"><a href="' . $eachTag['url'] . '">' . $eachTag['name'] . '</a></span>';
                     }
                 }
             // Close the tags div
@@ -322,13 +352,13 @@ function f13_album_data_formatter($albumData)
             $publishDate = explode(',', $albumData['album']['wiki']['published']);
             $publishDate = $publishDate[0];
             // Add the date to the response.
-            $response .= '<div class="f13-album-published">Published: ' . $publishDate . '</div>';
+            $response .= '<div class="f13-album-published"><span>Published</span>: ' . $publishDate . '</div>';
         }
 
         // Add the summary if it exists
         if (array_key_exists('summary', $albumData['album']['wiki']))
         {
-            $response .= '<div class="f13-album-summary">' . $albumData['album']['wiki']['summary'] . '</div>';
+            $response .= '<div class="f13-album-summary"><span>Album summary:</span> ' . $albumData['album']['wiki']['summary'] . '</div>';
         }
 
     // Close the container div
