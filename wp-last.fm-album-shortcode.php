@@ -213,7 +213,7 @@ function f13_album_data_formatter($albumData)
         {
             // Output the track number and name followed by the track
             // time in minutes:seconds
-            $response .= $currentTrack . ') ' . $eachTrack['name'] . ' (' . gmdate("i:s", $eachTrack['duration']) . ')<br />';
+            $response .= $currentTrack . ') <a href="' . $eachTrack['url'] . '">' . $eachTrack['name'] . '</a> (' . gmdate("i:s", $eachTrack['duration']) . ')<br />';
 
             // Increment the track number
             $currentTrack++;
@@ -226,8 +226,25 @@ function f13_album_data_formatter($albumData)
             // numeric tags are the year of the album.
             if (!is_numeric($eachTag['name']))
             {
-                $response .= $eachTag['name'] . '<br />';
+                $response .= '<a href="' . $eachTag['url'] . '">' . $eachTag['name'] . '</a><br />';
             }
+        }
+
+        // Add the published date if it's present
+        if (array_key_exists('published', $albumData['album']['wiki']))
+        {
+            // Remove the time from the end of the publish date
+            // to just return the date.
+            $publishDate = explode(',', $albumData['album']['wiki']['published']);
+            $publishDate = $publishDate[0];
+            // Add the date to the response.
+            $response .= 'Published: ' . $publishDate . '<br />';
+        }
+
+        // Add the summary if it exists
+        if (array_key_exists('summary', $albumData['album']['wiki']))
+        {
+            $response .= $albumData['album']['wiki']['summary'];
         }
 
     // Close the container div
