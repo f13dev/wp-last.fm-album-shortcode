@@ -24,3 +24,19 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
+
+// Register the shortcode
+add_shortcode( 'album', 'f13_lastfm_album_shortcode');
+// Register the CSS
+add_action( 'wp_enqueue_scripts', 'f13_lastfm_album_shortcode_stylesheet');
+
+function f13_lastfm_album_shortcode( $atts, $content = null )
+{
+  // Handle shortcode
+}
+
+function f13_lastfm_album_shortcode_stylesheet()
+{
+    wp_register_style( 'f13album-style', plugins_url('wp-last.fm-album-shortcode.css', __FILE__));
+    wp_enqueue_style( 'f13album-style' );
+}
