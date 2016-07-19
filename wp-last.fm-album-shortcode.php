@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 add_shortcode( 'album', 'f13_lastfm_album_shortcode');
 // Register the CSS
 add_action( 'wp_enqueue_scripts', 'f13_lastfm_album_shortcode_stylesheet');
+// Register the admin page
+add_action('admin_menu', 'f13_lfmas_create_menu');
 
 function f13_lastfm_album_shortcode( $atts, $content = null )
 {
@@ -90,6 +92,66 @@ function f13_lastfm_album_shortcode( $atts, $content = null )
     return $response;
 }
 
+function f13_lfmas_create_menu()
+{
+    // Create the top-level menu
+    add_options_page('F13Devs Last.fm Album Shortcode Settings', 'F13 Last.fm Album Shortcode', 'administrator', 'f13-lastfm-album-shortcode', 'f13_lfmas_settings_page');
+    // Retister the Settings
+    add_action( 'admin_init', 'f13_lfmas_settings');
+}
+
+function f13_lfmas_settings()
+{
+    // Register settings for token and timeout
+    register_setting( 'f13-lfmas-settings-group', 'lfmastoken');
+    register_setting( 'f13-lfmas-settings-group', 'lfmascache_timeout');
+}
+
+function f13_lfmas_settings_page()
+{
+?>
+    <div class="wrap">
+        <h2>F13 Album Shortcode Settings</h2>
+        <p>
+            This plugin requires an API Key from last.fm in order to function.
+        </p>
+        <p>
+            To obtain a Last.fm API Key:
+            <ol>
+                <li>
+                    Instructions
+                </li>
+            </ol>
+        </p>
+
+        <form method="post" action="options.php">
+            <?php settings_fields( 'f13-lfmas-settings-group' ); ?>
+            <?php do_settings_sections( 'f13-lfmas-settings-group' ); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">
+                        Last.fm API Key
+                    </th>
+                    <td>
+                        <input type="password" name="lfmastoken" value="<?php echo esc_attr( get_option( 'lfmastoken' ) ); ?>" style="width: 50%;"/>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">
+                        Cache timeout (minutes)
+                    </th>
+                    <td>
+                        <input type="number" name="lfmascache_timeout" value="<?php echo esc_attr( get_option( 'lfmascache_timeout' ) ); ?>" style="width: 75px;"/>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+    </div>
+<?php
+}
+
+
 function f13_lastfm_album_shortcode_stylesheet()
 {
     wp_register_style( 'f13album-style', plugins_url('wp-last.fm-album-shortcode.css', __FILE__));
@@ -98,9 +160,8 @@ function f13_lastfm_album_shortcode_stylesheet()
 
 function f13_get_lastfm_data($anArtist, $anAlbum)
 {
-    // Temporary api key variable until the admin backend and settings
-    // group has been created.
-    $key = '';
+    // Get the API Key from the admin settings
+    $key = esc_attr( get_option('lfmastoken'));
 
     // start curl
     $curl = curl_init();
